@@ -17,7 +17,7 @@ var BuildEnv string
 
 func handleRequests() {
 	r := mux.NewRouter().StrictSlash(true).PathPrefix("/api").Subrouter()
-	r.HandleFunc("/image/{path}", func(rw http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/image", func(rw http.ResponseWriter, r *http.Request) {
 		params := mux.Vars(r)
 		path := params["path"]
 
@@ -52,7 +52,7 @@ func handleRequests() {
 		defer Openfile.Close() // Close after function return
 
 		http.ServeFile(rw, r, fullPath)
-	}).Methods("GET")
+	}).Queries("path", "{path}").Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":9099", r))
 }
