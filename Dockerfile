@@ -16,8 +16,10 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.BuildEnv=pr
 
 FROM alpine:3.12.3
 
-RUN apk --no-cache add ca-certificates \
+RUN apk --no-cache add ca-certificates vips \
   && update-ca-certificates
+
+ENV CGO_CFLAGS_ALLOW=-Xpreprocessor
 
 COPY --from=0 /src/main .
 COPY --from=0 /src/config.prod.json .

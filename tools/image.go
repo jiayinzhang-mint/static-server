@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func CompressWithWidth(path string, suffix string, width int, quality int) (err error) {
+func Blur(path string, suffix string, ratio float64, quality int) (err error) {
 	input, _ := os.Open(path)
 	defer input.Close()
 
@@ -25,8 +26,8 @@ func CompressWithWidth(path string, suffix string, width int, quality int) (err 
 	img := bimg.NewImage(buf)
 	size, _ := img.Size()
 	newImage, err := img.Process(bimg.Options{
-		Width:   width,
-		Height:  width * size.Height / size.Width,
+		Width:   int(math.Ceil(float64(size.Width) * ratio)),
+		Height:  int(math.Ceil(float64(size.Height) * ratio)),
 		Quality: quality,
 		GaussianBlur: bimg.GaussianBlur{
 			Sigma:   10,
