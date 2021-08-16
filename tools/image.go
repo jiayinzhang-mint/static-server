@@ -1,14 +1,12 @@
 package tools
 
 import (
-	"image"
-	"image/jpeg"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/h2non/bimg"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/image/draw"
 )
 
 func CompressWithWidth(path string, suffix string, width int, quality int) (err error) {
@@ -17,30 +15,30 @@ func CompressWithWidth(path string, suffix string, width int, quality int) (err 
 
 	dir, filenameWithExt := filepath.Split(path)
 	filename := strings.TrimSuffix(filenameWithExt, filepath.Ext(path))
-	output, err := os.Create(filepath.Join(dir, filename+"-"+suffix+".jpg"))
+
+	buf, err := bimg.Read(path)
 	if err != nil {
 		logrus.Error(err)
 		return
 	}
 
-	defer output.Close()
-
-	// Decode the image (from PNG to image.Image):
-	src, err := jpeg.Decode(input)
+	img := bimg.NewImage(buf)
+	size, _ := img.Size()
+	newImage, err := img.Process(bimg.Options{
+		Width:   width,
+		Height:  width * size.Height / size.Width,
+		Quality: quality,
+		GaussianBlur: bimg.GaussianBlur{
+			Sigma:   10,
+			MinAmpl: 10,
+		},
+	})
 	if err != nil {
 		logrus.Error(err)
 		return
 	}
 
-	height := width * src.Bounds().Max.Y / src.Bounds().Max.X
-
-	dst := image.NewRGBA(image.Rect(0, 0, width, height))
-
-	// Resize:
-	draw.NearestNeighbor.Scale(dst, dst.Rect, src, src.Bounds(), draw.Over, nil)
-
-	// Encode to `output`:
-	err = jpeg.Encode(output, dst, &jpeg.Options{Quality: quality})
+	err = bimg.Write(filepath.Join(dir, filename+"-"+suffix+".jpg"), newImage)
 	if err != nil {
 		logrus.Error(err)
 		return

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -8,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/h2non/bimg"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -73,6 +75,16 @@ func main() {
 	err := viper.ReadInConfig()
 	if err != nil {
 		logrus.Fatal("config file error")
+	}
+
+	buffer, err := bimg.Read("./upload/1fab7ccc-0b9a-4769-a567-1d09a6484276/biu.jpg")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+
+	_, err = bimg.NewImage(buffer).Resize(800, 600)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
 	}
 
 	logrus.Info("press ctrl+c to exit")
